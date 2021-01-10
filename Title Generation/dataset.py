@@ -1,7 +1,7 @@
 from imports import *
 
 
-def build_vocab(df):
+def buildVocab(df):
     vocab = Counter()
     token_list = []
     stop_words = set(stopwords.words('english'))
@@ -35,7 +35,7 @@ def build_vocab(df):
     file.close()
     return vocab
 
-def prepare_dataset():
+def prepareDataset():
     # Load dataset
     df = pd.read_csv('wiki_movie_plots_deduped.csv')
     print("Original dataset shape: ", df.shape)
@@ -83,9 +83,37 @@ def load_doc(filename):
 	file.close()
 	return text
 
-def get_plot_vectors(df):
-    # DOES NOT WORK YET
+def getGenreVectors(df):
+
+    # Defined genre list
+    genre_list = [
+    "action", "science-fiction", "drama", "comedy", "romance",
+    "horror", "thriller", "crime", "western", "fantasy", "adventure", "music"]
+
+    genre_vec_list = []
+
+
+    for i, item in df.iterrows():
+
+    # Go through the substrings and check which genres apply fo the current row
+        genre_vec = [0,0,0,0,0,0,0,0,0,0,0,0]
+        genre = item['Genre'].split()
+
+        for index in range(len(genre_list)):
+            if genre_list[index] in genre:
+                genre_vec[index] = 1
+
+        genre_vec_list.append(genre_vec)
+
+    print(len(genre_vec_list))
+    return genre_vec_list
+    
+
+
+def getPlotVectors(df):
+    # Not tested yet!
     # Load the vocab for the bag-of-words representation of the plot
+
     vocab = load_doc("vocab.txt")
     vocab = vocab.split()
     vocab = set(vocab)
@@ -95,18 +123,7 @@ def get_plot_vectors(df):
     token_list = list()
     tokenstr_list = list()
 
-    with open('modified_ds.csv', 'w', encoding='utf-8') as csvfile:
-
-        csvfile.write("Index,Title,Genre Vec\n")
-
-        for i, item in df.iterrows():
-            has_genre = False;
-            has_plot = False;
-            has_title = False;
-
-            genre_vec = [0,0,0,0,0,0,0,0,0,0,0,0]
-
-            # Tokenize the plot and extract the words that are part of the vocab
+    for i, item in df.iterrows():
 
             plot = item['Plot']
             plot = plot.replace("'"," ")
@@ -126,35 +143,17 @@ def get_plot_vectors(df):
             token_list.append(tokens)
             tokenstr_list.append(tokenstr)
 
-            # Go through the substrings and check which genres apply fo the current row
-            genre = item['Genre'].lower()
-            for index in range(len(substring_list)):
-                if substring_list[index] in genre:
-                    genre_vec[index] = 1
-                    has_genre = True;
-
-            # If the row has a genre and a plot, write it into the new csv file
-            if (has_genre and has_plot):
-                csvfile.write( str(i) + ',' + item['Title'] + "," + str(genre_vec) + "\n")
-
     CountVec = CountVectorizer(ngram_range=(1,1), # to use bigrams ngram_range=(2,2)
                         stop_words='english')
     Count_data = CountVec.fit_transform(tokenstr_list)
 
-    cv_dataframe = pd.DataFrame(Count_data.toarray(),columns=CountVec.get_feature_names())
-    print(cv_dataframe)
+    plot_frame = pd.DataFrame(Count_data.toarray(),columns=CountVec.get_feature_names())
+    print(plot_frame)
+    return plot_frame
 
-
-
-def write_cleaned_csv(df):
+def writeCleanedCsv(df):
 
     # Define and sort genre list
-    genres = df['Genre'].unique()
-
-    substring_list = [
-        "action", "sci", "dram", "medy", "rom",
-        "horr", "thrill", "crime", "west", "adventure",
-        "music", "fant"]
     substrings = {
         "action"    : "action",
         "sci"       : "science-fiction",
@@ -165,7 +164,9 @@ def write_cleaned_csv(df):
         "thrill"    : "thriller",
         "crim"      : "crime",
         "west"      : "western",
-        "fant"      : "fantasy"
+        "fant"      : "fantasy",
+        "adv"       : "adventure",
+        "mus"       : "music"
         }
 
     with open('modified_ds.csv', 'w', encoding='utf-8') as csvfile:
@@ -205,11 +206,10 @@ def write_cleaned_csv(df):
             # Check if all three are valid
             if (has_genre and has_plot and has_title):
                 title = str("\"" + title + "\"")
-                new_genre = str("\"" + str(new_genre) + "\"")
+                new_genre = str("\"" + " ".join(new_genre) + "\"")
                 plot = str("\"" + plot + "\"")
 
-                csvfile.write(title + ";" + new_genre + ";" + plot + "\n")
+                csvfile.write(title + ";" + str(new_genre) + ";" + plot + "\n")
 
     df = pd.read_csv('modified_ds.csv', sep=';')
-    print(df.loc[0])
     print("Modified dataset shape: ", df.shape)

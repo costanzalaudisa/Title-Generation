@@ -6,7 +6,13 @@ from dataset import *
 # Gather dataset
 df = pd.read_csv('wiki_movie_plots_deduped.csv')
 
-#df = prepare_dataset()
-#vocab = build_vocab(df)
+#df = prepareDataset()
+#vocab = buildVocab(df)
 
-write_cleaned_csv(df)
+#writeCleanedCsv(df)
+
+df = pd.read_csv('modified_ds.csv', sep=";")
+
+#getPlotVectors(df)
+
+getGenreVectors(df)
