@@ -9,4 +9,4 @@ df = pd.read_csv('wiki_movie_plots_deduped.csv')
 #df = prepare_dataset()
 #vocab = build_vocab(df)
 
-write_genre_csv(df)
+write_cleaned_csv(df)
