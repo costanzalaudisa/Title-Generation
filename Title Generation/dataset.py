@@ -1,6 +1,27 @@
 from imports import *
 
 
+def getTitleVectors(df):
+    # Get list of unique characters
+    vocab = []
+    for title in df['Title']:
+        for char in list(set(title)):
+            vocab.append(char) if char not in vocab else vocab
+    vocab = sorted(vocab)
+    print(len(vocab), "unique characters\n", vocab)
+
+    ids_from_chars = StringLookup(vocabulary=list(vocab))
+    chars_from_ids = StringLookup(vocabulary=ids_from_chars.get_vocabulary(), invert=True)
+
+    title_list = []
+    for i, item in df.iterrows():
+        title = item['Title']
+        chars = tf.strings.unicode_split(title, input_encoding='UTF-8')
+        ids = ids_from_chars(chars)
+        title_list.append(ids)
+    print("Title list length:", len(title_list))
+
+
 def buildVocab(df):
     vocab = Counter()
     token_list = []
@@ -35,14 +56,15 @@ def buildVocab(df):
     file.close()
     return vocab
 
-def prepareDataset():
+
+def splitGenres(df): # not in use at the moment
     # Load dataset
-    df = pd.read_csv('wiki_movie_plots_deduped.csv')
     print("Original dataset shape: ", df.shape)
 
-    # Remove movies with 'unknown' and '-' genres
+    # Remove movies with 'unknown', '-' and empty genres
     df = df[df['Genre'] != 'unknown']
     df = df[df['Genre'] != '-']
+    df = df[df['Genre'] != '']
 
     # Remove parts in brackets (some genres contain [num] or [not in citation given], others contain irrelevant details in brackets)
     df['Genre'] = df['Genre'].str.replace("[\(\[].*?[\)\]]", "")
@@ -50,18 +72,23 @@ def prepareDataset():
     # Split multiple genres by / - , ; & etc.
     df['Genre'] = df['Genre'].str.split("/")
     df = df.explode('Genre').reset_index(drop=True)
+    df['Genre'] = df['Genre'].str.strip() # trim after split
 
     df['Genre'] = df['Genre'].str.split(" - ")
     df = df.explode('Genre').reset_index(drop=True)
+    df['Genre'] = df['Genre'].str.strip() # trim after split
 
     df['Genre'] = df['Genre'].str.split("&")
     df = df.explode('Genre').reset_index(drop=True)
+    df['Genre'] = df['Genre'].str.strip() # trim after split
 
     df['Genre'] = df['Genre'].str.split(",") # conflict with genre that contains '4,000'
     df = df.explode('Genre').reset_index(drop=True)
+    df['Genre'] = df['Genre'].str.strip() # trim after split
 
     df['Genre'] = df['Genre'].str.split(";")
     df = df.explode('Genre').reset_index(drop=True)
+    df['Genre'] = df['Genre'].str.strip() # trim after split
 
     # Trim strings after split
     df['Genre'] = df['Genre'].str.strip()
@@ -105,7 +132,7 @@ def getGenreVectors(df):
 
         genre_vec_list.append(genre_vec)
 
-    print(len(genre_vec_list))
+    print(type(genre_vec_list))
     return genre_vec_list
     
 
@@ -173,6 +200,15 @@ def writeCleanedCsv(df):
 
         csvfile.write("Title;Genre;Plot\n")
 
+        # Trim strings before proceeding
+        df['Title'] = df['Title'].str.strip()
+        df['Genre'] = df['Genre'].str.strip()
+        df['Plot'] = df['Plot'].str.strip()
+
+        # Remove text in brackets
+        df['Plot'] = df['Plot'].str.replace('\([\s\S]*\)', "")
+        df['Plot'] = df['Plot'].str.replace('\[[\s\S]*\]', "")
+
         for i, item in df.iterrows():
             has_genre = False;
             has_plot = False;
@@ -182,12 +218,41 @@ def writeCleanedCsv(df):
             title = item['Title']
             genre = item['Genre']
 
-            # Check if the entry has a valid title
-            # if !valid(title): continue
+
+            ### TITLE ###
+
+            ### METHOD 1 - remove titles ###
+            ### loses data but removes foreign titles
+            # Replace "duplicate" characters (weird hyphen, single 3-dots, non-breaking space, non-regular apostrophes, etc.)           
             title = title.replace('"', '')
+            title = title.replace("–", "-")
+            title = title.replace("…", "...")
+            title = title.replace(" ", " ")
+            title = title.replace("’", "'")
+            title = title.replace("`", "'")
+            title = title.replace("~", "")
+
+            ### METHOD 2 - convert titles ###
+            ### saves data but keeps foreign titles
+            # Convert all titles to ASCII (no data loss)
+            #title = unidecode(title)
+
+            # Skip title if it contains non-ASCII characters -> avoid foreign titles
+            if not(title.isascii()): continue
+
+
+            ############################
+
+            # Skip titles that do not contain any letters
+            if not(bool(re.match('^(?=.*[a-zA-Z])', title))): continue
+
+            # Skip non-english titles
+            if not(is_in_english(title)): continue
+
+
+            ### GENRE ###
 
             # Extract the predefined genres and write it with a consistent format into the new csv
-
             genre = genre.lower()
             new_genre = []
             for key in substrings:
@@ -195,13 +260,22 @@ def writeCleanedCsv(df):
                     new_genre.append(substrings[key])
                     has_genre = True;
 
-            # Check if the plot is valid: Todo i guess?
+
+            ### PLOT ###
+
+            # Convert to ASCII to avoid non-ASCII characters
+            plot = unidecode(plot)
+
+            # Check if the plot is valid
             if (plot != ''):
                 has_plot = True
                 plot = plot.replace("\r\n", " ")
                 plot = plot.replace("\n", " ")
                 plot = plot.strip('\"')
                 plot = plot.replace(";", ",")
+                if "(" in plot or ")" in plot or "[" in plot or "]" in plot:
+                    print("TITLE:   ", title)
+                    print("PLOT:    ", plot)
 
             # Check if all three are valid
             if (has_genre and has_plot and has_title):
