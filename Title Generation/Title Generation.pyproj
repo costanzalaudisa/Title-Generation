@@ -30,6 +30,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="modified_ds.csv" />
+    <Content Include="vocab.txt" />
     <Content Include="wiki_movie_plots_deduped.csv" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

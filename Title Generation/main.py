@@ -1,13 +1,22 @@
 from imports import *
-from dataset import prepare_dataset
+from dataset import *
  
 # print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
 # Gather dataset
-df = prepare_dataset()
-print(df)
+df = pd.read_csv('wiki_movie_plots_deduped.csv')
+print("Original dataset shape:", df.shape)
 
-# Define and sort genre list
-genres = df['Genre'].unique()
-sorted_genres = sorted(genres)
-print("Length of genre list:", len(sorted_genres), "  |   Genre list: ", sorted_genres)
+#df = splitGenres(df) # not in use at the moment
+#vocab = buildVocab(df)
+
+#writeCleanedCsv(df)
+
+df = pd.read_csv('modified_ds.csv', sep=";")
+print("Modified dataset shape:", df.shape)
+
+#getTitleVectors(df)
+
+#getPlotVectors(df)
+
+#getGenreVectors(df)
