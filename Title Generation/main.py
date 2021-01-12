@@ -8,12 +8,12 @@ df = pd.read_csv('wiki_movie_plots_deduped.csv')
 print("Original dataset shape:", df.shape)
 
 #df = splitGenres(df) # not in use at the moment
-#vocab = buildVocab(df)
+vocab = buildVocab(df)
 
-#writeCleanedCsv(df)
+writeCleanedCsv(df)
 
-df = pd.read_csv('modified_ds.csv', sep=";")
-print("Modified dataset shape:", df.shape)
+#df = pd.read_csv('modified_ds.csv', sep=";")
+#print("Modified dataset shape:", df.shape)
 
 #getTitleVectors(df)
 

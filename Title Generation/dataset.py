@@ -32,6 +32,10 @@ def buildVocab(df):
         plot = row['Plot']
         # Remove the apostrophe by splitting, else it will be simply removed and create new words
         plot = plot.replace("'"," ")
+        plot = plot.strip()
+        # Remove text in brackets
+        plot = plot.replace('\([\s\S]*\)', "")
+        plot = plot.replace('\[[\s\S]*\]', "")
         # split the plot into tokens by white space
         tokens = plot.split()
         #remove punctuation from each token
@@ -47,6 +51,7 @@ def buildVocab(df):
     for tokens in token_list:
         vocab.update(tokens)
     vocab = [k for k,c in vocab.items() if c >= 10]
+    print(vocab)
     data = '\n'.join(vocab)
     # open file
     file = open("vocab.txt", 'w', encoding='utf-8')
@@ -138,7 +143,6 @@ def getGenreVectors(df):
 
 
 def getPlotVectors(df):
-    # Not tested yet!
     # Load the vocab for the bag-of-words representation of the plot
 
     vocab = load_doc("vocab.txt")
@@ -273,6 +277,8 @@ def writeCleanedCsv(df):
                 plot = plot.replace("\n", " ")
                 plot = plot.strip('\"')
                 plot = plot.replace(";", ",")
+
+
                 if "(" in plot or ")" in plot or "[" in plot or "]" in plot:
                     print("TITLE:   ", title)
                     print("PLOT:    ", plot)
