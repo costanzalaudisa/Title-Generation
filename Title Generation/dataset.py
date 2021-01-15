@@ -138,7 +138,9 @@ def getGenreVectors(df):
         genre_vec_list.append(genre_vec)
 
     print(type(genre_vec_list))
-    return genre_vec_list
+
+    genre_vec_df = pd.DataFrame.from_records(genre_vec_list)
+    return genre_vec_df
     
 
 
@@ -293,3 +295,11 @@ def writeCleanedCsv(df):
 
     df = pd.read_csv('modified_ds.csv', sep=';')
     print("Modified dataset shape: ", df.shape)
+
+
+def combineDataFrames(X, Y):
+
+    # X are the input variables, Y is the target
+
+    new_df = pd.concat([X,Y], axis=1)
+    return new_df
