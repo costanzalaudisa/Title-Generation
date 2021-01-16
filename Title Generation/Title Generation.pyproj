@@ -11,8 +11,6 @@
     <OutputPath>.</OutputPath>
     <Name>Title Generation</Name>
     <RootNamespace>Title Generation</RootNamespace>
-    <IsWindowsApplication>False</IsWindowsApplication>
-    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,9 +36,6 @@
     <Content Include="modified_ds.csv" />
     <Content Include="vocab.txt" />
     <Content Include="wiki_movie_plots_deduped.csv" />
-  </ItemGroup>
-  <ItemGroup>
-    <InterpreterReference Include="Global|PythonCore|3.7" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

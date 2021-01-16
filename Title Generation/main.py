@@ -2,13 +2,14 @@ from imports import *
 from dataset import *
 from model1 import *
  
-print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+# print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
 # Gather dataset
 df = pd.read_csv('wiki_movie_plots_deduped.csv')
 print("Original dataset shape:", df.shape)
 
 #df = splitGenres(df) # not in use at the moment
+#vocab = buildVocab(df)
 
 #writeCleanedCsv(df)
 
@@ -18,7 +19,6 @@ print("Original dataset shape:", df.shape)
 #getTitleVectors(df)
 
 df = pd.read_csv('modified_ds.csv', sep=";")
-#vocab = buildVocab(df)
 
 X = getPlotVectors(df)
 
@@ -26,10 +26,8 @@ Y = getGenreVectors(df)
 
 #new_frame = combineDataFrames(X, Y)
 
-print(len(X.columns), len(Y.columns))
-
-model1 = createModel1(len(X.columns), len(Y.columns))
-model1.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
+model1 = createModel1()
+model1.compile(loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
               optimizer=tf.keras.optimizers.Adam(1e-4),
               metrics=['accuracy'])
 
