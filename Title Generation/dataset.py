@@ -50,7 +50,7 @@ def buildVocab(df):
 
     for tokens in token_list:
         vocab.update(tokens)
-    vocab = [k for k,c in vocab.items() if c >= 10]
+    vocab = [k for k,c in vocab.items() if c >= 50]
     print(vocab)
     data = '\n'.join(vocab)
     # open file
