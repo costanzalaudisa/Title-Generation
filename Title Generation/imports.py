@@ -25,9 +25,6 @@ from nltk.corpus import stopwords
 from unidecode import unidecode             # pip install Unidecode
 from enchant.checker import SpellChecker    # pip install -U pyenchant
 
-#import tensorflow_datasets as tfds
-import tensorflow as tf
-
 from sklearn.model_selection import train_test_split
 
 # Options
