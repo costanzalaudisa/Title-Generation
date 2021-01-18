@@ -25,6 +25,8 @@ from nltk.corpus import stopwords
 from unidecode import unidecode             # pip install Unidecode
 from enchant.checker import SpellChecker    # pip install -U pyenchant
 
+from sklearn.model_selection import train_test_split
+
 # Options
 np.set_printoptions(threshold=np.inf) # print option to infinity
 

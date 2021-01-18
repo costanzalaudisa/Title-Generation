@@ -50,7 +50,7 @@ def buildVocab(df):
 
     for tokens in token_list:
         vocab.update(tokens)
-    vocab = [k for k,c in vocab.items() if c >= 10]
+    vocab = [k for k,c in vocab.items() if c >= 50]
     print(vocab)
     data = '\n'.join(vocab)
     # open file
@@ -138,7 +138,9 @@ def getGenreVectors(df):
         genre_vec_list.append(genre_vec)
 
     print(type(genre_vec_list))
-    return genre_vec_list
+
+    genre_vec_df = pd.DataFrame.from_records(genre_vec_list)
+    return genre_vec_df
     
 
 
@@ -199,6 +201,21 @@ def writeCleanedCsv(df):
         "adv"       : "adventure",
         "mus"       : "music"
         }
+
+    genre_counter = {
+                    "action" : 0,
+                    "science-fiction" : 0,
+                    "drama" : 0,
+                    "comedy" : 0,
+                    "romance" : 0,
+                    "horror" : 0,
+                    "thriller" : 0,
+                    "crime" : 0,
+                    "western" : 0,
+                    "fantasy" : 0,
+                    "adventure": 0,
+                    "music" : 0
+                    }
 
     with open('modified_ds.csv', 'w', encoding='utf-8') as csvfile:
 
@@ -262,8 +279,12 @@ def writeCleanedCsv(df):
             for key in substrings:
                 if key in genre:
                     new_genre.append(substrings[key])
-                    has_genre = True;
+                    has_genre = True
 
+            if (len(new_genre) > 1):
+                has_genre = False
+            #print(new_genre, has_genre)
+            
 
             ### PLOT ###
 
@@ -278,18 +299,73 @@ def writeCleanedCsv(df):
                 plot = plot.strip('\"')
                 plot = plot.replace(";", ",")
 
-
-                if "(" in plot or ")" in plot or "[" in plot or "]" in plot:
-                    print("TITLE:   ", title)
-                    print("PLOT:    ", plot)
-
             # Check if all three are valid
             if (has_genre and has_plot and has_title):
                 title = str("\"" + title + "\"")
+                genre_counter[new_genre[0]] += 1
                 new_genre = str("\"" + " ".join(new_genre) + "\"")
                 plot = str("\"" + plot + "\"")
 
                 csvfile.write(title + ";" + str(new_genre) + ";" + plot + "\n")
 
+            #print(genre_counter)
+
     df = pd.read_csv('modified_ds.csv', sep=';')
     print("Modified dataset shape: ", df.shape)
+
+def balanceDataSet(filename):
+
+    # Check how many times each genre is present in the data set, and depending on how big the differences is, remove some of them
+    # Removing the genres "romance" and "fantasy, since these have very few entries
+    # max_items is the threshold
+
+    max_items = 500
+    new_genre_counter = {
+                "action" : 0,
+                "science-fiction" : 0,
+                "drama" : 0,
+                "comedy" : 0,
+                "horror" : 0,
+                "thriller" : 0,
+                "crime" : 0,
+                "western" : 0,
+                "adventure": 0,
+                "music" : 0
+                }
+    genre_counter = {
+                "action" : max_items,
+                "science-fiction" : max_items,
+                "drama" : max_items,
+                "comedy" : max_items,
+                "horror" : max_items,
+                "thriller" : max_items,
+                "crime" : max_items,
+                "western" : max_items,
+                "adventure": max_items,
+                "music" : max_items
+                }
+
+    df = pd.read_csv(filename, sep=';')
+
+    with open('balanced_ds.csv', 'w', encoding='utf-8') as csvfile:
+        csvfile.write("Title;Genre;Plot\n")
+
+        for i, item in df.iterrows():
+            title = item['Title']
+            genre = item['Genre']
+            plot = item['Plot']
+            if genre in genre_counter and genre_counter[genre] > 0:
+                csvfile.write(title + ";" + genre + ";" + plot + "\n")
+                genre_counter[genre] -= 1
+                new_genre_counter[genre] += 1
+
+    print(new_genre_counter)
+    df = pd.read_csv('balanced_ds.csv', sep=';')
+    print("Balanced dataset shape: ", df.shape)
+
+def combineDataFrames(X, Y):
+
+    # X are the input variables, Y is the target
+
+    new_df = pd.concat([X,Y], axis=1)
+    return new_df
