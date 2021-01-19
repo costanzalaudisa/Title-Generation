@@ -13,8 +13,7 @@ print("Is Tensorflow buit with CUDA: ", tf.test.is_built_with_cuda())
 #print("Original dataset shape:", df.shape)
 
 #writeCleanedCsv(df)
-
-balanceDataSet('modified_ds.csv')
+#balanceDataSet('modified_ds.csv')
 
 #df = pd.read_csv('modified_ds.csv', sep=";")
 #print("Modified dataset shape:", df.shape)
@@ -24,32 +23,30 @@ balanceDataSet('modified_ds.csv')
 #df = pd.read_csv('modified_ds.csv', sep=";")
 #vocab = buildVocab(df)
 
-#X = getPlotVectors(df)
+# Read the balanced data set, create the input and output vectors and train the model
 
-#Y = getGenreVectors(df)
+df = pd.read_csv('balanced_ds.csv', sep=";")
+X = getPlotVectors(df)
+Y = getGenreVectors(df)
 
-##new_frame = combineDataFrames(X, Y)
+print(len(X.columns), len(Y.columns))
 
-#print(len(X.columns), len(Y.columns))
-
-#model1 = createModel1(len(X.columns), len(Y.columns))
-#model1.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
-#              optimizer=tf.keras.optimizers.Adam(1e-4),
-#              metrics=['accuracy'])
+model1 = createModel1(len(X.columns), len(Y.columns))
+model2 = createModel2(6971, len(Y.columns))
 
 #BUFFER_SIZE = 10000
 #BATCH_SIZE = 64
 
-#X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.1)
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.1)
 
-#print(X_train.shape)
-#print(X_test.shape)
-#print(y_train.shape)
-#print(y_test.shape)
+print(X_train.shape)
+print(X_test.shape)
+print(y_train.shape)
+print(y_test.shape)
 
-#history = model1.fit(X_train, y_train, epochs=10)
+history = model2.fit(X_train, y_train, epochs=10)
 
-#test_loss, test_acc = model1.evaluate(X_test, y_test)
+test_loss, test_acc = model2.evaluate(X_test, y_test)
 
-#print('Test Loss: {}'.format(test_loss))
-#print('Test Accuracy: {}'.format(test_acc))
+print('Test Loss: {}'.format(test_loss))
+print('Test Accuracy: {}'.format(test_acc))

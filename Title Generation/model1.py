@@ -14,4 +14,18 @@ def createModel1(input, output):
     tf.keras.layers.Dense(output)
     ])
 
+    model.compile(loss=tf.keras.losses.CategoricalCrossentropy(),
+              optimizer=tf.keras.optimizers.Adam(1e-4),
+              metrics=['accuracy'])
+
+    return model
+
+def createModel2(intput, output):
+
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.Dense(50, activation='relu'))
+    model.add(tf.keras.layers.Dense(output, activation='softmax'))
+
+    model.compile(loss=tf.keras.losses.CategoricalCrossentropy(), optimizer='adam', metrics=['accuracy'])
+
     return model

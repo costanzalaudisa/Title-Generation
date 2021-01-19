@@ -119,8 +119,8 @@ def getGenreVectors(df):
 
     # Defined genre list
     genre_list = [
-    "action", "science-fiction", "drama", "comedy", "romance",
-    "horror", "thriller", "crime", "western", "fantasy", "adventure", "music"]
+    "action", "science-fiction", "drama", "comedy",
+    "horror", "thriller", "crime", "western", "adventure", "music"]
 
     genre_vec_list = []
 
@@ -128,7 +128,7 @@ def getGenreVectors(df):
     for i, item in df.iterrows():
 
     # Go through the substrings and check which genres apply fo the current row
-        genre_vec = [0,0,0,0,0,0,0,0,0,0,0,0]
+        genre_vec = [0,0,0,0,0,0,0,0,0,0]
         genre = item['Genre'].split()
 
         for index in range(len(genre_list)):
