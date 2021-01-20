@@ -9,7 +9,7 @@ def getTitleVectors(df):
             vocab.append(char) if char not in vocab else vocab
     vocab = sorted(vocab)
     print(len(vocab), "unique characters\n", vocab)
-
+    
     ids_from_chars = StringLookup(vocabulary=list(vocab))
     chars_from_ids = StringLookup(vocabulary=ids_from_chars.get_vocabulary(), invert=True)
 
