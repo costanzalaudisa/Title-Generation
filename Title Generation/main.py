@@ -1,7 +1,7 @@
 from imports import *
 from dataset import *
 from model1 import *
-
+from confusion_matrix import *
 # Gather dataset
 #df = pd.read_csv('wiki_movie_plots_deduped.csv')
 
@@ -54,6 +54,12 @@ history = plotModel.fit(X_train, y_train,
                      validation_data=(X_val, y_val))
 
 plot_history(history)
+
+#display confusion matrix
+y_pred = plotModel.predict(X_test).argmax(axis=-1)
+y_labels = y_test.idxmax(axis=1)
+cm_analysis(y_labels,y_pred ,range(10), ymap = {0: "action", 1:"science-fiction",2: "drama",3:"comedy",4:"horror",5: "thriller",6:"crime",7: "western",8:"adventure",9:"music"}
+, figsize=(20,14))
 
 test_loss, test_acc = plotModel.evaluate(X_test, y_test)
 print('Test Loss: {}'.format(test_loss))
