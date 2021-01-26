@@ -20,7 +20,7 @@ print("Is Tensorflow built with CUDA:", tf.test.is_built_with_cuda())
 from tensorflow import keras                    # pip install tensorflow
 from keras.preprocessing.text import Tokenizer  # pip install keras
 from keras.layers.experimental.preprocessing import StringLookup, TextVectorization
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 # Language processing
 from string import punctuation
@@ -30,7 +30,9 @@ from nltk.corpus import stopwords
 from unidecode import unidecode             # pip install Unidecode
 from enchant.checker import SpellChecker    # pip install -U pyenchant
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split    # for splitting data into training and testing sets
+from sklearn.model_selection import KFold               # for performing cross validation with k-fold
+import tensorflow_hub as hub
 
 
 ### Options ###
