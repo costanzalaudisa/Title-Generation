@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
 
-#using https://stackoverflow.com/questions/19233771/sklearn-plot-confusion-matrix-with-labels
+# Using https://stackoverflow.com/questions/19233771/sklearn-plot-confusion-matrix-with-labels
 def cm_analysis(y_true, y_pred, labels, ymap=None, figsize=(10,10)):
     """
     Generate matrix plot of confusion matrix with pretty annotations.

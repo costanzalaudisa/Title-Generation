@@ -1,5 +1,6 @@
 from reproducible import *
 
+
 ### Libraries import ###
 
 # Utils
@@ -21,6 +22,8 @@ from tensorflow import keras                    # pip install tensorflow
 from keras.preprocessing.text import Tokenizer  # pip install keras
 from keras.layers.experimental.preprocessing import StringLookup, TextVectorization
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
 
 # Language processing
 from string import punctuation
@@ -29,10 +32,6 @@ nltk.download('stopwords')
 from nltk.corpus import stopwords
 from unidecode import unidecode             # pip install Unidecode
 from enchant.checker import SpellChecker    # pip install -U pyenchant
-
-from sklearn.model_selection import train_test_split    # for splitting data into training and testing sets
-from sklearn.model_selection import KFold               # for performing cross validation with k-fold
-import tensorflow_hub as hub
 
 
 ### Options ###
@@ -47,7 +46,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 ### Functions ###
 
 # Function to check for english text using a spellchecker 
-max_error_count = 0     # 1 error as threshold
+max_error_count = 0     # 1 error as threshold (it's > not >=)
 min_text_length = 0
 def is_in_english(quote): 
     d = SpellChecker("en_US")
@@ -66,7 +65,7 @@ def plot_history(history):
     plt.legend(loc="upper left")
     plt.show()
 
-    # Plot loss
+    # Plot accuracy
     plt.plot(history.history['accuracy'], label='Train. accuracy')
     plt.plot(history.history['val_accuracy'], label='Val. accuracy')
     plt.title('Model accuracy')

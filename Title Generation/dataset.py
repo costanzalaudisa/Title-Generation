@@ -10,16 +10,25 @@ def getTitleVectors(df):
     vocab = sorted(vocab)
     print(len(vocab), "unique characters\n", vocab)
     
-    ids_from_chars = StringLookup(vocabulary=list(vocab))
-    chars_from_ids = StringLookup(vocabulary=ids_from_chars.get_vocabulary(), invert=True)
+    # Define mapping
+    ids_from_chars = StringLookup(vocabulary=list(vocab),
+                                  mask_token="")
+    chars_from_ids = StringLookup(vocabulary=ids_from_chars.get_vocabulary(), 
+                                  invert=True)
 
+    # Encode titles
     title_list = []
     for i, item in df.iterrows():
         title = item['Title']
         chars = tf.strings.unicode_split(title, input_encoding='UTF-8')
         ids = ids_from_chars(chars)
-        title_list.append(ids)
-    print("Title list length:", len(title_list))
+        title_list.append(ids.numpy())
+
+    # Convert list into df, fill NaNs with 0, fix to int instead of float
+    title_vecs = pd.DataFrame.from_records(title_list)
+    title_vecs = title_vecs.fillna(0)
+    title_vecs = title_vecs.astype(int)
+    return title_vecs
 
 
 def buildVocab(df):
@@ -28,95 +37,58 @@ def buildVocab(df):
     stop_words = set(stopwords.words('english'))
 
     table = str.maketrans('', '', punctuation)
+    
     for index, row in df.iterrows():
         plot = row['Plot']
+        
         # Remove the apostrophe by splitting, else it will be simply removed and create new words
         plot = plot.replace("'"," ")
         plot = plot.strip()
+        
         # Remove text in brackets
         plot = plot.replace('\([\s\S]*\)', "")
         plot = plot.replace('\[[\s\S]*\]', "")
-        # split the plot into tokens by white space
+        
+        # Split the plot into tokens by white space
         tokens = plot.split()
-        #remove punctuation from each token
+        
+        # Remove punctuation from each token
         tokens = [w.translate(table) for w in tokens]
-        # remove remaining tokens that are not alphabetic
+        
+        # Remove remaining tokens that are not alphabetic
         tokens = [word.lower() for word in tokens if word.isalpha()]
-        # filter out stop words
+        
+        # Filter out stop words
         tokens = [w for w in tokens if not w in stop_words]
-        # filter out short tokens
+        
+        # Filter out short tokens
         tokens = [word for word in tokens if len(word) > 1]
         token_list.append(tokens)
 
     for tokens in token_list:
         vocab.update(tokens)
     vocab = [k for k,c in vocab.items() if c >= 50]
-    print(vocab)
     data = '\n'.join(vocab)
-    # open file
+    
+    # Open file, write text, close file
     file = open("vocab.txt", 'w', encoding='utf-8')
-    # write text
     file.write(data)
-    # close file
     file.close()
+
     return vocab
 
 
-def splitGenres(df): # not in use at the moment
-    # Load dataset
-    print("Original dataset shape: ", df.shape)
-
-    # Remove movies with 'unknown', '-' and empty genres
-    df = df[df['Genre'] != 'unknown']
-    df = df[df['Genre'] != '-']
-    df = df[df['Genre'] != '']
-
-    # Remove parts in brackets (some genres contain [num] or [not in citation given], others contain irrelevant details in brackets)
-    df['Genre'] = df['Genre'].str.replace("[\(\[].*?[\)\]]", "")
-
-    # Split multiple genres by / - , ; & etc.
-    df['Genre'] = df['Genre'].str.split("/")
-    df = df.explode('Genre').reset_index(drop=True)
-    df['Genre'] = df['Genre'].str.strip() # trim after split
-
-    df['Genre'] = df['Genre'].str.split(" - ")
-    df = df.explode('Genre').reset_index(drop=True)
-    df['Genre'] = df['Genre'].str.strip() # trim after split
-
-    df['Genre'] = df['Genre'].str.split("&")
-    df = df.explode('Genre').reset_index(drop=True)
-    df['Genre'] = df['Genre'].str.strip() # trim after split
-
-    df['Genre'] = df['Genre'].str.split(",") # conflict with genre that contains '4,000'
-    df = df.explode('Genre').reset_index(drop=True)
-    df['Genre'] = df['Genre'].str.strip() # trim after split
-
-    df['Genre'] = df['Genre'].str.split(";")
-    df = df.explode('Genre').reset_index(drop=True)
-    df['Genre'] = df['Genre'].str.strip() # trim after split
-
-    # Trim strings after split
-    df['Genre'] = df['Genre'].str.strip()
-
-    # Drop movies with no genre
-    df = df[df['Genre'] != '']
-
-    print("Final dataset shape: ", df.shape)
-
-    return df
-
-# load doc into memory
+# Load doc into memory
 def load_doc(filename):
-	# open the file as read only
+	# Open file as read only, read text, close file
 	file = open(filename, 'r', encoding="utf8")
-	# read all text
 	text = file.read()
-	# close the file
 	file.close()
+
 	return text
 
-def getGenreVectors(df):
 
+def getGenreVectors(df):
     # Defined genre list
     genre_list_10 = [
         "action", "science-fiction", "drama", "comedy",
@@ -125,9 +97,9 @@ def getGenreVectors(df):
         "science-fiction", "drama", "horror", "crime", "western"]
     genre_vec_list = []
 
-    # Set the genres we want to have as vector dimensions. 10 for the full 10 genres, red for the 5 best genres.
-    genre_list = genre_list_red
-
+    # Set the genres we want to have as vector dimensions -> '_10' for the full 10 genres, '_red' for the 5 best genres
+    genre_list = genre_list_10  ### 10 GENRES -> cannot use with balanced_ds_red!
+    #genre_list = genre_list_red ### 5 BEST-SCORING GENRES
 
     for i, item in df.iterrows():
 
@@ -136,7 +108,6 @@ def getGenreVectors(df):
         genre = item['Genre']
 
         if (genre not in genre_list):
-            print(genre)
             continue
 
         for index in range(len(genre_list)):
@@ -145,24 +116,22 @@ def getGenreVectors(df):
 
         genre_vec_list.append(genre_vec)
 
-    print(type(genre_vec_list))
 
     genre_vec_df = pd.DataFrame.from_records(genre_vec_list)
     return genre_vec_df
-    
 
 
 def getPlotVectors(df):
     # Load the vocab for the bag-of-words representation of the plot
-
     genre_list_10 = [
             "action", "science-fiction", "drama", "comedy",
             "horror", "thriller", "crime", "western", "adventure", "music"]
     genre_list_red = [
             "science-fiction", "drama", "horror", "crime", "western"]
 
-    # Set the genres we have in the output vectors. 10 for all of the genres, red for the 5 best ones.
-    genre_list = genre_list_red
+    # Set the genres we want to have as vector dimensions -> '_10' for the full 10 genres, '_red' for the 5 best genres
+    genre_list = genre_list_10  ### 10 GENRES -> cannot use with balanced_ds_red!
+    #genre_list = genre_list_red ### 5 BEST-SCORING GENRES
 
     vocab = load_doc("vocab.txt")
     vocab = vocab.split()
@@ -183,15 +152,20 @@ def getPlotVectors(df):
 
         plot = item['Plot']
         plot = plot.replace("'"," ")
-        # split the plot into tokens by white space
+        
+        # Split the plot into tokens by white space
         tokens = plot.split()
-        #remove punctuation from each token
+        
+        # Remove punctuation from each token
         tokens = [w.translate(table) for w in tokens]
-        # remove remaining tokens that are not alphabetic
+        
+        # Remove remaining tokens that are not alphabetic
         tokens = [word.lower() for word in tokens if word.isalpha()]
-        # filter out stop words
+        
+        # Filter out stop words
         tokens = [w for w in tokens if not w in stop_words]
-        # filter out short tokens
+        
+        # Filter out short tokens
         tokens = [word for word in tokens if len(word) > 1]
         tokens = [w for w in tokens if w in vocab]
         tokenstr = ' '.join(tokens)
@@ -214,11 +188,10 @@ def getPlotVectors(df):
     plot_frame   = pd.DataFrame(Count_data.toarray(),columns=CountVec.get_feature_names())
     tf_idf_frame = pd.DataFrame(tf_idf_data.toarray(),columns=TFIDFvec.get_feature_names())
 
-    print(tf_idf_frame.iloc[:3].values)
     return tf_idf_frame
 
-def writeCleanedCsv(df):
 
+def writeCleanedCsv(df):
     # Define and sort genre list
     substrings_10 = {
         "action"    : "action",
@@ -296,9 +269,8 @@ def writeCleanedCsv(df):
 
             ### TITLE ###
 
-            ### METHOD 1 - remove titles ###
-            ### loses data but removes foreign titles
-            # Replace "duplicate" characters (weird hyphen, single 3-dots, non-breaking space, non-regular apostrophes, etc.)           
+            ### This method loses data but removes foreign titles ###
+            # Replace "duplicate" characters (alternative hyphen, single 3-dots, non-breaking space, non-regular apostrophes, etc.)           
             title = title.replace('"', '')
             title = title.replace("–", "-")
             title = title.replace("…", "...")
@@ -308,16 +280,13 @@ def writeCleanedCsv(df):
             title = title.replace("~", "")
 
             # Skip title if it contains non-ASCII characters -> avoid foreign titles
-            #if not(title.isascii()): continue
-
-
-            ############################
+            if not(title.isascii()): continue
 
             # Skip titles that do not contain any letters
-            # if not(bool(re.match('^(?=.*[a-zA-Z])', title))): continue
+            if not(bool(re.match('^(?=.*[a-zA-Z])', title))): continue
 
             # Skip non-english titles
-            # if not(is_in_english(title)): continue
+            if not(is_in_english(title)): continue
 
 
             ### GENRE ###
@@ -355,17 +324,16 @@ def writeCleanedCsv(df):
                 out_plot = str("\"" + plot + "\"")
 
                 csvfile.write(out_title + ";" + str(out_genre) + ";" + out_plot + "\n")
-        print(genre_counter)
 
     df = pd.read_csv(file_name, sep=';')
     print("Modified dataset shape: ", df.shape)
 
-def balanceDataSet(filename):
 
+def balanceDataSet(filename):
     # Check how many times each genre is present in the data set, and depending on how big the differences is, remove some of them
     # Removing the genres "romance" and "fantasy, since these have very few entries
-    # max_items is the threshold
 
+    # max_items is the threshold
     max_items = 900
 
     new_genre_counter_10 = {
@@ -380,6 +348,7 @@ def balanceDataSet(filename):
                 "adventure": 0,
                 "music" : 0
                 }
+
     genre_counter_10 = {
                 "action" : max_items,
                 "science-fiction" : max_items,
@@ -400,6 +369,7 @@ def balanceDataSet(filename):
                 "crime" : 0,
                 "western" : 0,
                 }
+
     genre_counter_red = {
                 "science-fiction" : max_items,
                 "drama" : max_items,
@@ -428,13 +398,11 @@ def balanceDataSet(filename):
                 genre_counter[genre] -= 1
                 new_genre_counter[genre] += 1
 
-    print(new_genre_counter)
     df = pd.read_csv('balanced_ds.csv', sep=';')
     print("Balanced dataset shape: ", df.shape)
 
+
 def combineDataFrames(X, Y):
-
     # X are the input variables, Y is the target
-
     new_df = pd.concat([X,Y], axis=1)
     return new_df

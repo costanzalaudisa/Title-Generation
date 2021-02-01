@@ -12,7 +12,7 @@
     <Name>Title Generation</Name>
     <RootNamespace>Title Generation</RootNamespace>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
+    <InterpreterId>Global|PythonCore|3.8</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,6 +23,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="confusion_matrix.py" />
     <Compile Include="main.py" />
     <Compile Include="imports.py">
       <SubType>Code</SubType>
@@ -39,12 +40,18 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="balanced_ds.csv" />
+    <Content Include="balanced_ds_red.csv" />
+    <Content Include="exp_balanced_ds.csv" />
+    <Content Include="exp_ds.csv" />
+    <Content Include="exp_ds_2.csv" />
     <Content Include="modified_ds.csv" />
+    <Content Include="modified_ds_red.csv" />
     <Content Include="vocab.txt" />
     <Content Include="wiki_movie_plots_deduped.csv" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="Global|PythonCore|3.8" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
